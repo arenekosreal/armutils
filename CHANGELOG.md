@@ -1,6 +1,6 @@
 ## [Release 0.1.1](https://gitlab.com/mipimipi/armutils/tags/0.1.1) (2020-04-25)
 
-# Changed
+### Changed
 
 * Adopted latest change of makechrootpkg to makearmpkg
 * Corrected Makefile
