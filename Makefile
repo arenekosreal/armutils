@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Michael Picht <mipi@fsfe.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 PKG=armutils
 CMDS=mkarmroot makearmpkg
 

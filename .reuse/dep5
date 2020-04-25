@@ -1,0 +1,15 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: armutils
+Upstream-Contact: Michael Picht <mipi@fsfe.org>
+Source: gitlab.com/mipimipi/armutils
+
+Files: .gitlab-ci.yml
+       CHANGELOG.md
+       README.md
+Copyright: 2020 Michael Picht <mipi@fsfe.org>
+License: CC-BY-NC-SA-4.0
+
+Files: makearmpkg
+Copyright: Unknown
+           2020 Michael Picht <mipi@fsfe.org>
+License: GPL-2.0-or-later 
