@@ -61,11 +61,7 @@ create_chroot_dir() {
     msg "Creating chroot directory ..."
     mkdir -p "$chroot_dir"
 
-    if ! lock 9 "${chroot_dir}.lock" "Locking chroot ..."
-    then
-        rm -rd "$chroot_dir"
-        die "Cannot lock chroot"
-    fi    
+    lock 9 "${chroot_dir}.lock" "Locking chroot ..."
 
     if is_btrfs "$chroot_dir"
     then
@@ -120,8 +116,8 @@ is_btrfs() {
 	[[ -e "$1" && "$(stat -f -c %T "$1")" == btrfs ]]
 }
 
-# lock_excl --- create an exclusive lock via flock (taken from the x86_64
-#               Arch Linux scripts)
+# lock --- create an exclusive lock via flock (taken from the x86_64 Arch Linux
+#          scripts)
 # usage: lock <fd> <file> <message> [ <message_args>... ]
 lock() {
     # Only reopen the file descriptor if it wasn't handed to us
