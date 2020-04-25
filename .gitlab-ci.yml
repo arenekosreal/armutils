@@ -42,5 +42,5 @@ deploy:
         - *before_script_common
 
     script:
-        - pkgname=aurutils-git
+        - pkgname=armutils-git
         - *script_common  
