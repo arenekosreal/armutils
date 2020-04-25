@@ -1,0 +1,261 @@
+#!/bin/bash
+
+# shellcheck disable=SC2154
+trap 's=$?; echo "$0: Error on line ${LINENO}: ${BASH_COMMAND}" $s' ERR
+# register cleanup function
+trap "cleanup" INT TERM EXIT
+
+# avoid any encoding problems
+export LANG=C
+
+shopt -s extglob
+
+# shellcheck disable=1091
+. /usr/share/makepkg/util.sh
+
+# check if messages are to be printed using color
+if [[ -t 2 && "$TERM" != dumb ]]
+then
+	colorize
+else
+	# shellcheck disable=2034
+	declare -gr ALL_OFF='' BOLD='' BLUE='' GREEN='' RED='' YELLOW=''
+fi
+
+# umask might have been changed in /etc/profile
+# ensure that sane default is set again
+umask 0022
+
+# shellcheck disable=2034
+declare -r CHROOT_VERSION="v1"
+
+
+################################################################################
+# global variables                                                             #
+################################################################################
+
+declare chroot_dir=""
+declare img_url=""
+declare img_file=""
+
+
+################################################################################
+# utility functions                                                            #
+################################################################################
+
+# cleanup --- delete temporary data, function is called when script is
+#              terminated
+# usage: cleanup <exit-code>
+cleanup () {
+	exit "${1:-0}"
+}
+
+# create_chroot_dir --- create chroot_dir
+# usage: create_chroot_dir
+# prerequisites:
+#   - path of chroot dir must be stored in $chroot_dir
+create_chroot_dir() {
+    [[ $chroot_dir = "" ]] && die "Please specify a chroot directory."
+    [[ -e $chroot_dir ]] && die "Chroot directory '%s' already exists" "$chroot_dir"
+
+    msg "Creating chroot directory ..."
+    mkdir -p "$chroot_dir"
+
+    if ! lock 9 "${chroot_dir}.lock" "Locking chroot ..."
+    then
+        rm -rd "$chroot_dir"
+        die "Cannot lock chroot"
+    fi    
+
+    if is_btrfs "$chroot_dir"
+    then
+	    rmdir "$chroot_dir"
+    	if ! btrfs subvolume create "$chroot_dir"
+    	then
+		    die "Couldn't create subvolume for '%s'" "$chroot_dir"
+    	fi
+	    chmod 0755 "$chroot_dir"
+    fi
+
+    # make chroot_dir a mount point
+    mount --bind "$chroot_dir" "$chroot_dir"
+}
+
+# die --- print message and exit (taken from the x86_64 Arch Linux scripts)
+# usage: die <msg>
+die() {
+	(( $# )) && error "$@"
+	cleanup 255
+}
+
+# install packages --- populates Arch Linux ARM keys, updates chroot and
+#                      installs packages as requires by the caller
+# usage: install packages <packages>
+# prerequisites:
+#   - chroot dir must exist
+#   - ARM files must be populated to chroot
+install_packages() {
+    # populating keys
+    msg "Populating Arch Linux ARM keys ..."
+    arch-chroot "$chroot_dir" pacman-key --init
+    arch-chroot "$chroot_dir" pacman-key --populate archlinuxarm
+    plain "Done"
+
+    # updating chroot
+    msg "Updating chroot ..."
+    arch-chroot "$chroot_dir" pacman -Syu --noconfirm
+    msg "Chroot updated"
+
+    # install packages
+    msg "Installing packages ..."
+    arch-chroot "$chroot_dir" pacman -S "$@" --noconfirm
+    msg "Packages installed"
+}
+
+# is_btrfs --- check if whether $path is on a btrfs (taken from the x86_64
+#              Arch Linux scripts)
+# usage: is_btrfs <path>
+# returns : 1 if path is on btrfs, 0 otherwise
+is_btrfs() {
+	[[ -e "$1" && "$(stat -f -c %T "$1")" == btrfs ]]
+}
+
+# lock_excl --- create an exclusive lock via flock (taken from the x86_64
+#               Arch Linux scripts)
+# usage: lock <fd> <file> <message> [ <message_args>... ]
+lock() {
+    # Only reopen the file descriptor if it wasn't handed to us
+    if ! [[ "/dev/fd/$1" -ef "$2" ]]; then
+        mkdir -p -- "$(dirname -- "$2")"
+        eval "exec $1>"'"$2"'
+    fi
+   
+    if ! flock -n "$1"; then
+        stat_busy "${@:3}"
+        flock "$1"
+        plain "Done"
+    fi
+}
+
+# populate_arm_files --- extract files from ARM image into chroot dir. If a
+#                        url is given, the downloaded image files is deleted
+#                        after the files have been extracted and populated
+# usage: populate_arm_image
+# prerequisites:
+#   - either $img_url or $img_file must be set
+#   - chroot dir must exist
+populate_arm_files() {
+    local rm_img_file=0
+
+    if [ "$img_file" = "" ]
+    then
+        [[ -n  "$img_url" ]] || die "Either the url or the file name of an ARM image is required"
+        msg "Downloading Arch Linux ARM image ..."
+        if ! wget "$img_url"
+        then
+            die "Error during image download"
+        fi
+        img_file="${PWD}/${img_url##http*/}"
+        plain "Done"
+        rm_img_file=1
+    fi
+
+    # check if image file exists
+    [[ -e $img_file ]] || die "Image file '%s' does not exists" "$img_file"
+
+    msg "Populating files from Arch Linux ARM image"
+    if ! bsdtar -xpf "$img_file" -C "$chroot_dir"
+    then
+        (( rm_img_file )) || rm "$img_file" 
+        die "Cannot populate image files to chroot directory"
+    fi
+    (( rm_img_file )) && rm "$img_file" 
+    plain "Done"
+}
+
+# print_help --- print help / usage text
+# usage: print_help
+print_help() {
+    cat <<EOF
+mkarmroot (make an ARM chroot environment)
+
+mkarmroot creates a chroot environment for an ARM architecture and installs
+packages into the new environment.
+
+Usage:
+  ${0##*/} [options] chroot-dir packages ...
+
+Options:
+  -u <url>    Web url of aa Arch Linux ARM image file
+  -f <file>   Location of an Arch Linux ARM image file
+  -C <file>   Location of a pacman config file
+  -M <file>   Location of a makepkg config file
+  -h          This message
+
+mkarmroot must be executed as root
+EOF
+}
+
+
+################################################################################
+# main script                                                                  #
+################################################################################
+
+while getopts "hu:f:C:M:a:" arg
+do
+	case "$arg" in
+        u)  
+            img_url="$OPTARG"
+            ;;
+        f)  
+            img_file="$OPTARG"
+            ;;    
+		C)  
+		    pacman_conf="$OPTARG"
+		    ;;
+		M)  
+		    makepkg_conf="$OPTARG"
+		    ;;
+		h|?)
+		    print_help
+            exit 0
+		    ;;
+		*)  error "invalid argument '%s'" "$arg"
+		    print_help
+		    exit 1
+		    ;;
+	esac
+done
+shift $((OPTIND - 1))
+
+# check arguments
+(( $# < 2 )) && die "You must specify a chroot directory and one or more packages."
+[[ $img_url = "" && $img_file = "" ]] && die "Either a url or a file name must be speficied for the ARM image."
+
+# script must be executed as root
+if ! [ "$(id -u)" = 0 ]
+then
+   error "${0##*/} must be executed as root"
+   exit 1
+fi
+
+# create chroot dir (creates a lock)
+chroot_dir="$1"
+shift 1
+create_chroot_dir
+
+# populate ARM files
+populate_arm_files
+
+# set machine id
+systemd-machine-id-setup --root="$chroot_dir"
+
+# indicate it as Arch Linux ARM chroot
+echo "$CHROOT_VERSION" > "$chroot_dir/.arm-chroot"
+
+# populate pacman.conf & makepkg.conf
+[[ -n "$pacman_conf" ]] && cp "$pacman_conf" "${chroot_dir}/etc/pacman.conf" 
+[[ -n "$makepkg_conf" ]] && cp "$makepkg_conf" "${chroot_dir}/etc/makepkg.conf" 
+
+# install packages
+install_packages "$@"
