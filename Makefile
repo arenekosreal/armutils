@@ -19,9 +19,6 @@ shellcheck:
 	done	
 
 install:
-	# commands
 	for CMD in $(CMDS); do \
 		install -Dm755 $$CMD $(DESTDIR)/usr/bin/$$CMD; \
 	done
-	# common lib
-	install -Dm755 ./common -t $(DESTDIR)/usr/lib/$(PKG)
