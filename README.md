@@ -4,9 +4,10 @@
 With [chroot](https://wiki.archlinux.org/index.php/Chroot) environments and [QEMU](https://wiki.archlinux.org/index.php/QEMU) it's possible to build Arch Linux packages for [ARM architectures](https://en.wikipedia.org/wiki/ARM_architecture) in a rather simple and convenient way. **armutils** provides the corresponding tools:
 
 * `mkarmroot` creates an Arch Linux chroot environment for an ARM architecture from an image file. Such image files are provided by [Arch Linux ARM](https://archlinuxarm.org)
+* `arm-nspawn` spawn a command inn a chroot environment
 * `makearmpkg` builds a package in an ARM chroot environment
 
-Both tools mimic the behaviour of their x86_64 counterparts `mkarchroot` and `makechrootpkg`.
+These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`.
 
 ## mkarchroot
 
@@ -24,8 +25,12 @@ Both tools mimic the behaviour of their x86_64 counterparts `mkarchroot` and `ma
 
 creates a chroot environment for ARMv8 / AArch64 under the folder `./aarch64/root` and installs the package group `base-devel`.
 
+## arm-nspawn
+
+`arm-nspawn` is a fork of `arch-nspawn` with major changes since `arch-nspawn` is made to be used for x86_64 chroot environments. The interfaces of both commands are equal, with one exception: `arm-nspawn`does not provide the `-s` option.
+
 ## makearmpkg
 
-`makearmpkg` is a fork of `makechrootpkg` with minor changes since `makechrootpkg` is tailored to run on x86_64 Arch Linux. Essentially, the calls of `arch-nspawn` are replaced by calls to `systemd-nspawn`. The interfaces and functionalities of `makearmpkg` and `makechrootpkg` are equal.
+`makearmpkg` is a fork of `makechrootpkg` with minor changes since `makechrootpkg` is made to be used for x86_64 chroot environments. Essentially, the calls of `arch-nspawn` are replaced by calls to `arm-nspawn`. The interfaces and functionalities of `makearmpkg` and `makechrootpkg` are equal.
 
 Also `makearmpkg` must be executed as root. It requires a chroot environment where the packages of `base-devel` are installed.
