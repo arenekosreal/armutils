@@ -3,15 +3,15 @@
 
 With [chroot](https://wiki.archlinux.org/index.php/Chroot) environments and [QEMU](https://wiki.archlinux.org/index.php/QEMU) it's possible to build Arch Linux packages for [ARM architectures](https://en.wikipedia.org/wiki/ARM_architecture) in a rather simple and convenient way. **armutils** provides the corresponding tools:
 
-* `mkarmroot` creates an Arch Linux chroot environment for an ARM architecture from an image file. Such image files are provided by [Arch Linux ARM](https://archlinuxarm.org)
-* `arm-nspawn` spawn a command inn a chroot environment
+* `mkarmroot` creates an Arch Linux chroot environment for an ARM architecture from an image file. Such image files can be downloaded from [Arch Linux ARM](https://archlinuxarm.org)
+* `arm-nspawn` spawns a command in an ARM chroot environment, wrapping `systemd-nspawn`
 * `makearmpkg` builds a package in an ARM chroot environment
 
-These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`.
+These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`. `arch-chroot` does also work for ARM chroot environments and thus can be used to execute commands in such containers.
 
 ## mkarchroot
 
-`mkarchroot` is an implementation of the approach described on [nerdstuff.org](https://nerdstuff.org/posts/2020/2020-003_simplest_way_to_create_an_arm_chroot/). The tool must be executed as root and called with:
+`mkarchroot` is an implementation of the approach described on [nerdstuff.org](https://nerdstuff.org/posts/2020/2020-003_simplest_way_to_create_an_arm_chroot/). The tool must be called with:
 
 * either an URL of an ARM image archive or the path of an image archive on the local file system. Such an image can be obtained from [Arch Linux ARM](https://archlinuxarm.org) for different ARM architectures.
 * the desired path of the root directory of the new chroot environment
@@ -27,10 +27,8 @@ creates a chroot environment for ARMv8 / AArch64 under the folder `./aarch64/roo
 
 ## arm-nspawn
 
-`arm-nspawn` is a fork of `arch-nspawn` with major changes since `arch-nspawn` is made to be used for x86_64 chroot environments. The interfaces of both commands are equal, with one exception: `arm-nspawn`does not provide the `-s` option.
+`arm-nspawn` is a fork of `arch-nspawn` with major changes since `arch-nspawn` is made to be used for x86_64 chroot environments. The interfaces of both commands are almost equal - `arm-nspawn`does not provide the `-s` option.
 
 ## makearmpkg
 
-`makearmpkg` is a fork of `makechrootpkg` with minor changes since `makechrootpkg` is made to be used for x86_64 chroot environments. Essentially, the calls of `arch-nspawn` are replaced by calls to `arm-nspawn`. The interfaces and functionalities of `makearmpkg` and `makechrootpkg` are equal.
-
-Also `makearmpkg` must be executed as root. It requires a chroot environment where the packages of `base-devel` are installed.
+`makearmpkg` is a fork of `makechrootpkg` with minor changes since `makechrootpkg` is made to be used for x86_64 chroot environments. Essentially, the calls of `arch-nspawn` are replaced by calls of `arm-nspawn`. The interfaces and functionalities of `makearmpkg` and `makechrootpkg` are equal. It requires a chroot environment where the packages of `base-devel` are installed.
