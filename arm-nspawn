@@ -1,0 +1,178 @@
+#!/bin/bash
+# License: GNU GPLv2
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+#!/hint/bash
+# This may be included with or without `set -euE`
+
+# License: Unspecified
+
+[[ -z ${_INCLUDE_COMMON_SH:-} ]] || return 0
+_INCLUDE_COMMON_SH="$(set +o|grep nounset)"
+
+set +u +o posix
+# shellcheck disable=1091
+. /usr/share/makepkg/util.sh
+$_INCLUDE_COMMON_SH
+
+# Avoid any encoding problems
+export LANG=C
+
+shopt -s extglob
+
+# check if messages are to be printed using color
+if [[ -t 2 && "$TERM" != dumb ]]; then
+	colorize
+else
+	# shellcheck disable=2034
+	declare -gr ALL_OFF='' BOLD='' BLUE='' GREEN='' RED='' YELLOW=''
+fi
+
+cleanup() {
+	exit "${1:-0}"
+}
+
+die() {
+	(( $# )) && error "$@"
+	cleanup 255
+}
+
+# shellcheck disable=2034
+CHROOT_VERSION='v1'
+
+# umask might have been changed in /etc/profile
+# ensure that sane default is set again
+umask 0022
+
+working_dir=''
+
+files=()
+mount_args=()
+
+# print_help --- print help / usage text
+# usage: print_help
+print_help() {
+    cat <<EOF
+arm-nspawn is a wrapper around systemd-nspawn with support of pacman. It's
+similar to arch-nspawn, but is made for ARM chroot environments.
+
+Usage:
+  ${0##*/} [options] working-dir [systemd-nspawn arguments]
+
+Options:
+  -C <file>     Location of a pacman config file
+  -M <file>     Location of a makepkg config file
+  -c <dir>      Set pacman cache
+  -f <file>     Copy file from the host to the chroot
+  -h            This message
+
+arm-nspawn must be executed as root
+EOF
+}
+
+while getopts 'hC:M:c:f:' arg; do
+	case "$arg" in
+		C)
+		    pac_conf="$OPTARG"
+		    ;;
+		M)
+		    makepkg_conf="$OPTARG"
+		    ;;
+		c)
+		    cache_dirs+=("$OPTARG")
+		    ;;
+		f)
+		    files+=("$OPTARG")
+		    ;;
+		h|?)
+		    print_help
+		    exit 0;;
+		*)
+		    error "invalid argument '%s'" "$arg"
+		    print_help
+		    exit 1
+		    ;;
+	esac
+done
+shift $((OPTIND - 1))
+
+(( $# < 1 )) && die 'You must specify a directory.'
+
+# script must be executed as root
+if ! [ "$(id -u)" = 0 ]
+then
+   error "${0##*/} must be executed as root"
+   exit 1
+fi
+
+working_dir=$(readlink -f "$1")
+shift 1
+
+[[ -z $working_dir ]] && die 'Please specify a working directory.'
+
+pacconf_cmd=$(command -v pacman-conf || command -v pacconf)
+
+if (( ${#cache_dirs[@]} == 0 )); then
+	mapfile -t cache_dirs < <($pacconf_cmd --config "${pac_conf:-$working_dir/etc/pacman.conf}" CacheDir)
+fi
+
+while read -r line; do
+	mapfile -t lines < <($pacconf_cmd --config "${pac_conf:-$working_dir/etc/pacman.conf}" \
+		--repo "$line" Server | sed -r 's#(.*/)[^/]+/os/.+#\1#')
+	for line in "${lines[@]}"; do
+		if [[ $line = file://* ]]; then
+			line=${line#file://}
+			in_array "$line" "${cache_dirs[@]}" || cache_dirs+=("$line")
+		fi
+	done
+done < <($pacconf_cmd --config "${pac_conf:-$working_dir/etc/pacman.conf}" --repo-list)
+
+mount_args+=("--bind=${cache_dirs[0]//:/\\:}")
+
+for cache_dir in "${cache_dirs[@]:1}"; do
+	mount_args+=("--bind-ro=${cache_dir//:/\\:}")
+done
+
+# needed for DNS
+mount_args+=("--bind-ro=/etc/resolv.conf")
+
+# {{{ functions
+copy_hostconf () {
+	[[ -n $pac_conf ]] && cp "$pac_conf" "$working_dir/etc/pacman.conf"
+	[[ -n $makepkg_conf ]] && cp "$makepkg_conf" "$working_dir/etc/makepkg.conf"
+
+	local file
+	for file in "${files[@]}"; do
+		mkdir -p "$(dirname "$working_dir$file")"
+		cp -T "$file" "$working_dir$file"
+	done
+
+	sed -r "s|^#?\\s*CacheDir.+|CacheDir = ${cache_dirs[*]}|g" -i "$working_dir/etc/pacman.conf"
+}
+# }}}
+
+umask 0022
+
+# Sanity check
+if [[ ! -f "$working_dir/.arm-chroot" ]]; then
+	die "'%s' does not appear to be an Arch ARM chroot." "$working_dir"
+elif [[ $(cat "$working_dir/.arm-chroot") != "$CHROOT_VERSION" ]]; then
+	die "chroot '%s' is not at version %s. Please rebuild." "$working_dir" "$CHROOT_VERSION"
+fi
+
+copy_hostconf
+
+systemd-nspawn -q \
+	-D "$working_dir" \
+	-E "PATH=/usr/local/sbin:/usr/local/bin:/usr/bin" \
+	--register=no --keep-unit --as-pid2 \
+	"${mount_args[@]}" \
+	"$@"

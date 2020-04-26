@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 PKG=armutils
-CMDS=mkarmroot makearmpkg
+CMDS=arm-nspawn mkarmroot makearmpkg
 
 # use bash
 SHELL=/bin/bash
