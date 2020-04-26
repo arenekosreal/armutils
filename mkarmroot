@@ -137,24 +137,26 @@ lock() {
 }
 
 # populate_arm_files --- extract files from ARM image into chroot dir. If a
-#                        url is given, the downloaded image files is deleted
-#                        after the files have been extracted and populated
+#                        url is given, the image files is downloaded to a
+#                        temporary directory
 # usage: populate_arm_image
 # prerequisites:
 #   - either $img_url or $img_file must be set
 #   - chroot dir must exist
 populate_arm_files() {
     local rm_img_file=0
+    local tmpdir=
 
     if [ "$img_file" = "" ]
     then
         [[ -n  "$img_url" ]] || die "Either the url or the file name of an ARM image is required"
         msg "Downloading Arch Linux ARM image ..."
-        if ! wget "$img_url"
+        tmpdir=$(mktemp -d)
+        if ! wget --directory-prefix="$tmpdir" "$img_url"
         then
             die "Error during image download"
         fi
-        img_file="${PWD}/${img_url##http*/}"
+        img_file="${tmpdir}/${img_url##http*/}"
         plain "Done"
         rm_img_file=1
     fi
