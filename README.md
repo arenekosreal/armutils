@@ -7,7 +7,7 @@ With [chroot](https://wiki.archlinux.org/index.php/Chroot) environments and [QEM
 * `arm-nspawn` spawns a command in an ARM chroot environment, wrapping `systemd-nspawn`
 * `makearmpkg` builds a package in an ARM chroot environment
 
-These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`. Using `arch-chroot` to execute commands in ARM chroots can lead to strange error messages, therefore it's recommended to use `arm-nspawn`instead.
+These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`.
 
 ## mkarchroot
 
@@ -28,6 +28,8 @@ creates a chroot environment for ARMv8 / AArch64 under the folder `./aarch64/roo
 ## arm-nspawn
 
 `arm-nspawn` is a fork of `arch-nspawn` with major changes since `arch-nspawn` is made to be used for x86_64 chroot environments. The interfaces of both commands are almost equal - `arm-nspawn`does not provide the `-s` option.
+
+**Using `arch-chroot` to execute commands in ARM chroots can lead to strange error messages, therefore it's recommended to use `arm-nspawn`instead.**
 
 ## makearmpkg
 

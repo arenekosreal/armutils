@@ -96,18 +96,18 @@ die() {
 install_packages() {
     # populating keys
     msg "Populating Arch Linux ARM keys ..."
-    arch-chroot "$chroot_dir" pacman-key --init
-    arch-chroot "$chroot_dir" pacman-key --populate archlinuxarm
+    arm-nspawn "$chroot_dir" pacman-key --init
+    arm-nspawn "$chroot_dir" pacman-key --populate archlinuxarm
     plain "Done"
 
     # updating chroot
     msg "Updating chroot ..."
-    arch-chroot "$chroot_dir" pacman -Syu --noconfirm
+    arm-nspawn "$chroot_dir" pacman -Syu --noconfirm
     msg "Chroot updated"
 
     # install packages
     msg "Installing packages ..."
-    arch-chroot "$chroot_dir" pacman -S "$@" --noconfirm
+    arm-nspawn "$chroot_dir" pacman -S "$@" --noconfirm
     msg "Packages installed"
 }
 
