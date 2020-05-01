@@ -1,3 +1,10 @@
+## [Release 0.3.0](https://gitlab.com/mipimipi/armutils/tags/0.2.0) (2020-05-01)
+
+### Changed
+
+* `arm-nspawn`: Removed binding of /var/cache/pacman/pkg to chroot container.
+* `makearmchroot`: Corrected creation of build user
+
 ## [Release 0.2.0](https://gitlab.com/mipimipi/armutils/tags/0.2.0) (2020-04-26)
 
 ### Added
