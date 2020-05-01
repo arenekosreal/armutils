@@ -343,6 +343,11 @@ install_packages() {
 }
 
 prepare_chroot() {
+    if [ -e "$copydir/usr/bin/sudo" ]
+    then
+        chmod u+s "$copydir/usr/bin/sudo"
+    fi    
+
 	(( keepbuilddir )) || rm -rf "$copydir/build"
 
 	local builduser_uid builduser_gid
@@ -350,14 +355,26 @@ prepare_chroot() {
 	builduser_gid="$(id -g "$makepkg_user")"
 	local install="install -o $builduser_uid -g $builduser_gid"
 	local x
+	local builduser_name
 
-	# We can't use useradd without chrooting, otherwise it invokes PAM modules
-	# which we might not be able to load (i.e. when building i686 packages on
-	# an x86_64 host).
-	sed -e '/^builduser:/d' -i "$copydir"/etc/{passwd,shadow,group}
-	printf >>"$copydir/etc/group"  'builduser:x:%d:\n' "$builduser_gid"
-	printf >>"$copydir/etc/passwd" 'builduser:x:%d:%d:builduser:/build:/bin/bash\n' "$builduser_uid" "$builduser_gid"
-	printf >>"$copydir/etc/shadow" 'builduser:!!:%d::::::\n' "$(( $(date -u +%s) / 86400 ))"
+    builduser_name=$(grep ".*:.*:1000:.*" "$copydir/etc/passwd" | cut -d : -f 1)
+    if [ "$builduser_name" = "" ]
+    then
+        builduser_name="builduser"
+
+    	# We can't use useradd without chrooting, otherwise it invokes PAM modules
+	    # which we might not be able to load (i.e. when building i686 packages on
+    	# an x86_64 host).
+	    sed -e '/^builduser:/d' -i "$copydir"/etc/{passwd,shadow,group}
+    	printf >>"$copydir/etc/group"  'builduser:x:%d:\n' "$builduser_gid"
+	    printf >>"$copydir/etc/passwd" 'builduser:x:%d:%d:builduser:/build:/bin/bash\n' "$builduser_uid" "$builduser_gid"
+    	printf >>"$copydir/etc/shadow" 'builduser:!!:%d::::::\n' "$(( $(date -u +%s) / 86400 ))"
+    fi
+
+    if [ -e "$copydir/home/$builduser_name" ]
+    then
+    	chmod +rx "$copydir/home/$builduser_name"
+    fi	
 
 	$install -d "$copydir"/{build,startdir,{pkg,srcpkg,src,log}dest}
 
@@ -369,9 +386,7 @@ prepare_chroot() {
 		echo "$x" >>"$copydir/etc/makepkg.conf"
 	done
 
-	cat > "$copydir/etc/sudoers.d/builduser-pacman" <<EOF
-builduser ALL = NOPASSWD: /usr/bin/pacman
-EOF
+    echo "$builduser_name ALL = NOPASSWD: /usr/bin/pacman" > "$copydir/etc/sudoers.d/builduser-pacman"
 	chmod 440 "$copydir/etc/sudoers.d/builduser-pacman"
 
 	# This is a little gross, but this way the script is recreated every time in the
@@ -380,7 +395,7 @@ EOF
 		printf '#!/bin/bash\n'
 		declare -f _chrootbuild
 		declare -p SOURCE_DATE_EPOCH 2>/dev/null || true
-		printf '_chrootbuild "$@" || exit\n'
+		printf '_chrootbuild %s "$@" || exit\n' $builduser_name
 
 		if (( run_namcap )); then
 			declare -f _chrootnamcap
@@ -403,7 +418,9 @@ _chrootbuild() {
 	# use "$" in arguments to commands with "sudo -i".  ${foo} or
 	# ${1} is OK, but $foo or $1 isn't.
 	# https://bugzilla.sudo.ws/show_bug.cgi?id=765
-	sudo --preserve-env=SOURCE_DATE_EPOCH -iu builduser bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
+	user_name=$1
+	shift
+	sudo --preserve-env=SOURCE_DATE_EPOCH -iu "$user_name" bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
 	ret=$?
 	case $ret in
 		0|14)
@@ -513,11 +530,6 @@ for arg in "${@:$OPTIND}"; do
 done
 
 umask 0022
-
-ORIG_HOME=$HOME
-IFS=: read -r _ _ _ _ _ HOME _ < <(getent passwd "${SUDO_USER:-$USER}")
-load_makepkg_config
-HOME=$ORIG_HOME
 
 # Use PKGBUILD directory if these don't exist
 [[ -d $PKGDEST ]]    || PKGDEST=$PWD
