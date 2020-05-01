@@ -1,4 +1,4 @@
-## [Release 0.3.0](https://gitlab.com/mipimipi/armutils/tags/0.2.0) (2020-05-01)
+## [Release 0.3.0](https://gitlab.com/mipimipi/armutils/tags/0.3.0) (2020-05-01)
 
 ### Changed
 
