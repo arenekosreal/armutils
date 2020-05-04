@@ -386,7 +386,7 @@ prepare_chroot() {
 		echo "$x" >>"$copydir/etc/makepkg.conf"
 	done
 
-    echo "$builduser_name ALL = NOPASSWD: /usr/bin/pacman" > "$copydir/etc/sudoers.d/builduser-pacman"
+    echo "$builduser_name ALL = NOPASSWD: ALL" > "$copydir/etc/sudoers.d/builduser-pacman"
 	chmod 440 "$copydir/etc/sudoers.d/builduser-pacman"
 
 	# This is a little gross, but this way the script is recreated every time in the
@@ -420,7 +420,7 @@ _chrootbuild() {
 	# https://bugzilla.sudo.ws/show_bug.cgi?id=765
 	user_name=$1
 	shift
-	sudo --preserve-env=SOURCE_DATE_EPOCH -iu "$user_name" bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
+	sudo --preserve-env=SOURCE_DATE_EPOCH -iu "$user_name" bash -c 'cd /startdir; makepkg_sudo "$@"' -bash "$@"
 	ret=$?
 	case $ret in
 		0|14)
@@ -619,3 +619,4 @@ else
 	fi
 	true
 fi
+

@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/bash
+
 # SPDX-FileCopyrightText: 2020 Michael Picht <mipi@fsfe.org>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -247,6 +248,9 @@ create_chroot_dir
 
 # populate ARM files
 populate_arm_files
+
+# populate forked makepkg
+cp /etc/armutils/makepkg_sudo "${chroot_dir}/usr/bin"
 
 # set machine id
 systemd-machine-id-setup --root="$chroot_dir"
