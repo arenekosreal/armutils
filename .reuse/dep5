@@ -8,9 +8,3 @@ Files: .gitlab-ci.yml
        README.md
 Copyright: 2020 Michael Picht <mipi@fsfe.org>
 License: CC-BY-NC-SA-4.0
-
-Files: arm-nspawn
-       makearmpkg
-Copyright: Unknown
-           2020 Michael Picht <mipi@fsfe.org>
-License: GPL-2.0-or-later 

@@ -4,6 +4,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# mkarmroot creates an ARM chroot environment from an Arch Linux ARM image
+# file. Such files can be obtained from archlinuxarm.org.
+
 # shellcheck disable=SC2154
 trap 's=$?; echo "$0: Error on line ${LINENO}: ${BASH_COMMAND}" $s' ERR
 # register cleanup function

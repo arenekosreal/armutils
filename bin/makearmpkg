@@ -1,4 +1,15 @@
-#!/bin/bash
+#!/usr/bin/bash
+
+# SPDX-FileCopyrightText: 2020 Michael Picht <mipi@fsfe.org>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# makearmpkg is a fork of makechrootpkg that is adjusted to build packages for
+# ARM architectures in an ARM chroot environment. The chroot environment must
+# be created with mkarmroot.
+
+# Preamble of the original file:
+#
 # License: GNU GPLv2
 #
 # This program is free software; you can redistribute it and/or modify
