@@ -231,44 +231,47 @@ copy=$USER
 [[ -z "$copy" || $copy = root ]] && copy=copy
 src_owner=${SUDO_USER:-$USER}
 
-usage() {
-	echo "Usage: ${0##*/} [options] -r <chrootdir> [--] [makepkg args]"
-	echo ' Run this script in a PKGBUILD dir to build a package inside a'
-	echo ' clean chroot. Arguments passed to this script after the'
-	echo ' end-of-options marker (--) will be passed to makepkg.'
-	echo ''
-	echo ' The chroot dir consists of the following directories:'
-	echo ' <chrootdir>/{root, copy} but only "root" is required'
-	echo ' by default. The working copy will be created as needed'
-	echo ''
-	echo 'The chroot "root" directory must be created via the following'
-	echo 'command:'
-	echo '    mkarmroot <chrootdir>/root base-devel'
-	echo ''
-	echo 'This script reads {SRC,SRCPKG,PKG,LOG}DEST, MAKEFLAGS and PACKAGER'
-	echo 'from makepkg.conf(5), if those variables are not part of the'
-	echo 'environment.'
-	echo ''
-	echo "Default makepkg args: ${default_makepkg_args[*]}"
-	echo ''
-	echo 'Flags:'
-	echo '-h         This help'
-	echo '-c         Clean the chroot before building'
-	echo '-d <dir>   Bind directory into build chroot as read-write'
-	echo '-D <dir>   Bind directory into build chroot as read-only'
-	echo '-u         Update the working copy of the chroot before building'
-	echo '           This is useful for rebuilds without dirtying the pristine'
-	echo '           chroot'
-	echo '-r <dir>   The chroot dir to use'
-	echo '-I <pkg>   Install a package into the working copy of the chroot'
-	echo '-l <copy>  The directory to use as the working copy of the chroot'
-	echo '           Useful for maintaining multiple copies'
-	echo "           Default: $copy"
-	echo '-n         Run namcap on the package'
-	echo '-C         Run checkpkg on the package'
-	echo '-T         Build in a temporary directory'
-	echo '-U         Run makepkg as a specified user'
-	exit 1
+print_help() {
+    cat <<EOF
+makearmpkg (make a package for an ARM architecture)
+
+Usage:
+  ${0##*/} [options] -r <chrootdir> [--] [makepkg args]
+
+Run this script in a PKGBUILD dir to build a package for an ARM architecture
+inside a chroot. Arguments passed to this script after the end-of-options
+marker (--) will be passed to makepkg.
+
+The chroot dir consists of the following directories: <chrootdir>/{root, copy}
+but only "root" is required by default. The working copy will be created as
+needed.
+
+The chroot "root" directory must be created via the following
+command:
+  mkarmroot <chrootdir>/root base-devel
+
+This script reads {SRC,SRCPKG,PKG,LOG}DEST, MAKEFLAGS and PACKAGER
+from makepkg.conf(5), if those variables are not part of the
+environment.
+
+Default makepkg args: ${default_makepkg_args[*]}
+
+Options:
+  -h         This help
+  -c         Clean the chroot before building
+  -d <dir>   Bind directory into build chroot as read-write
+  -D <dir>   Bind directory into build chroot as read-only
+  -u         Update the working copy of the chroot before building. This is
+             useful for rebuilds without dirtying the pristine chroot
+  -r <dir>   The chroot dir to use
+  -I <pkg>   Install a package into the working copy of the chroot
+  -l <copy>  The directory to use as the working copy of the chroot. Useful
+             for maintaining multiple copies. Default: $copy
+  -n         Run namcap on the package
+  -C         Run checkpkg on the package
+  -T         Build in a temporary directory
+  -U         Run makepkg as a specified user
+EOF
 }
 
 # {{{ functions
@@ -357,7 +360,7 @@ prepare_chroot() {
 	local x
 	local builduser_name
 
-    builduser_name=$(grep ".*:.*:1000:.*" "$copydir/etc/passwd" | cut -d : -f 1)
+    builduser_name=$(grep ".*:.*:${builduser_uid}:.*" "$copydir/etc/passwd" | cut -d : -f 1)
     if [ "$builduser_name" = "" ]
     then
         builduser_name="builduser"
@@ -373,7 +376,7 @@ prepare_chroot() {
 
     if [ -e "$copydir/home/$builduser_name" ]
     then
-    	chmod +rx "$copydir/home/$builduser_name"
+    	chmod ugo+wrx "$copydir/home/$builduser_name"
     fi	
 
 	$install -d "$copydir"/{build,startdir,{pkg,srcpkg,src,log}dest}
@@ -386,8 +389,8 @@ prepare_chroot() {
 		echo "$x" >>"$copydir/etc/makepkg.conf"
 	done
 
-    echo "$builduser_name ALL = NOPASSWD: ALL" > "$copydir/etc/sudoers.d/builduser-pacman"
-	chmod 440 "$copydir/etc/sudoers.d/builduser-pacman"
+    echo "$builduser_name ALL = NOPASSWD: ALL" > "$copydir/etc/sudoers.d/builduser"
+	chmod 440 "$copydir/etc/sudoers.d/builduser"
 
 	# This is a little gross, but this way the script is recreated every time in the
 	# working copy
@@ -495,7 +498,10 @@ while getopts 'hcur:I:l:nCTD:d:U:' arg; do
 		C) run_checkpkg=1 ;;
 		T) temp_chroot=1; copy+="-$$" ;;
 		U) makepkg_user="$OPTARG" ;;
-		h|*) usage ;;
+		h|*)
+		    print_help
+            exit 0
+		    ;;
 	esac
 done
 
@@ -619,4 +625,3 @@ else
 	fi
 	true
 fi
-
