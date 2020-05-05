@@ -7,7 +7,7 @@ With [chroot](https://wiki.archlinux.org/index.php/Chroot) environments and [QEM
 * `arm-nspawn` spawns a command in an ARM chroot environment, wrapping `systemd-nspawn`
 * `makearmpkg` builds a package in an ARM chroot environment
 
-These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`.
+These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`. [qemu-user-static](https://aur.archlinux.org/packages/qemu-user-static/) and [binfmt-qemu-static](https://aur.archlinux.org/packages/binfmt-qemu-static/) are used to "translate" between the ARM chroot and the x86_64 host.
 
 ## mkarchroot
 
@@ -19,12 +19,6 @@ These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch
 
 `mkarchroot` creates the root folder for the chroot environment, extracts the image files into it, updates the environment and installs the packages.
 
-**Example:** The command
-
-    mkarmroot -u http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz ./aarch64/root base-devel
-
-creates a chroot environment for ARMv8 / AArch64 under the folder `./aarch64/root` and installs the package group `base-devel`.
-
 ## arm-nspawn
 
 `arm-nspawn` is a fork of `arch-nspawn` with major changes since `arch-nspawn` is made to be used for x86_64 chroot environments. The interfaces of both commands are almost equal - `arm-nspawn`does not provide the `-s` option.
@@ -33,4 +27,24 @@ creates a chroot environment for ARMv8 / AArch64 under the folder `./aarch64/roo
 
 ## makearmpkg
 
-`makearmpkg` is a fork of `makechrootpkg` with minor changes since `makechrootpkg` is made to be used for x86_64 chroot environments. Essentially, the calls of `arch-nspawn` are replaced by calls of `arm-nspawn`. The interfaces and functionalities of `makearmpkg` and `makechrootpkg` are equal. It requires a chroot environment where the packages of `base-devel` are installed.
+`makearmpkg` is a fork of `makechrootpkg` with minor changes since `makechrootpkg` is made to be used for x86_64 chroot environments. Adjustments:
+
+* the calls of `arch-nspawn` are replaced by calls of `arm-nspawn`.
+* since the execution of `fakeroot` in an ARM chroot environment leads to [an error with `qemu-user-static`](https://archlinuxarm.org/forum/viewtopic.php?f=57&t=14466), armutils contains a fork of `makepkg` where `sudo`is used instead of `fakeroot`. `makearmpkg` calls this fork instead of the original `makepkg`.
+
+The interfaces and functionalities of `makearmpkg` and `makechrootpkg` are equal. It requires a chroot environment where the packages of `base-devel` are installed.
+
+## Example
+
+The command
+
+    $ mkarmroot -u http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz <YOUR-PATH>/aarch64/root base-devel
+
+creates a chroot environment for ARMv8 / AArch64 under the folder `<YOUR-PATH>/aarch64/root` and installs the package group `base-devel`.
+
+If the PKGBUILD file of an [AUR](https://aur.archlinux.org) package is stored in `<YOUR-PATH>/pkg`, the package can be built with:
+
+    $ cd <YOUR-PATH>/pkg
+    $ sudo makearmpkg -r ../aarch64 -- --noconfirm
+
+The option `--noconfirm` is passed to `makepkg` (the fork, to be correct) to suppress user input. The warnings `Unknown host QEMU_IFLA type: 54` can be ignored.
