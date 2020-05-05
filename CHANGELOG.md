@@ -1,3 +1,9 @@
+## [Release 0.4.0](https://gitlab.com/mipimipi/armutils/-/tags/0.4.0) (2020-05-05)
+
+### Added
+
+* `makepkg_sudo`, a fork of `makepkg` that uses `sudo` instead of `fakeroot`. That's required because of [this problem](https://archlinuxarm.org/forum/viewtopic.php?f=57&t=14466).
+
 ## [Release 0.3.0](https://gitlab.com/mipimipi/armutils/-/tags/0.3.0) (2020-05-01)
 
 ### Changed
