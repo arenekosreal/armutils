@@ -79,9 +79,6 @@ create_chroot_dir() {
     	fi
 	    chmod 0755 "$chroot_dir"
     fi
-
-    # make chroot_dir a mount point
-    mount --bind "$chroot_dir" "$chroot_dir"
 }
 
 # die --- print message and exit (taken from the x86_64 Arch Linux scripts)
@@ -156,7 +153,7 @@ populate_arm_files() {
         [[ -n  "$img_url" ]] || die "Either the url or the file name of an ARM image is required"
         msg "Downloading Arch Linux ARM image ..."
         tmpdir=$(mktemp -d)
-        if ! wget --directory-prefix="$tmpdir" "$img_url"
+        if ! (cd "$tmpdir"; curl -L -O "$img_url")
         then
             die "Error during image download"
         fi
