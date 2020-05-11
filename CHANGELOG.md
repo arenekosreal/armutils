@@ -1,3 +1,15 @@
+## [Release 0.4.1](https://gitlab.com/mipimipi/armutils/-/tags/0.4.1) (2020-05-11)
+
+### Changed
+
+* `mkarmroot`: Replaced `wget` by `curl` to download ARM image
+* `makepkg_sudo`: Change "fakeroot" by "sudo" in messages
+
+### Removed
+
+* `mkarmroot`: Removed mounting chroot folder to itself
+
+
 ## [Release 0.4.0](https://gitlab.com/mipimipi/armutils/-/tags/0.4.0) (2020-05-05)
 
 ### Added
