@@ -138,19 +138,6 @@ lock_close() {
 	exec {fd}>&-
 }
 
-##
-# usage: pkgver_equal( $pkgver1, $pkgver2 )
-##
-pkgver_equal() {
-	if [[ $1 = *-* && $2 = *-* ]]; then
-		# if both versions have a pkgrel, then they must be an exact match
-		[[ $1 = "$2" ]]
-	else
-		# otherwise, trim any pkgrel and compare the bare version.
-		[[ ${1%%-*} = "${2%%-*}" ]]
-	fi
-}
-
 #!/hint/bash
 # License: Unspecified
 :
@@ -285,7 +272,6 @@ Options:
 EOF
 }
 
-# {{{ functions
 # Usage: sync_chroot $chrootdir $copydir [$copy]
 sync_chroot() {
 	local chrootdir=$1
@@ -494,7 +480,6 @@ move_products() {
 		fi
 	done
 }
-# }}}
 
 while getopts 'hcur:I:l:nCTD:d:U:' arg; do
 	case "$arg" in
