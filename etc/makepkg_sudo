@@ -151,27 +151,27 @@ clean_up() {
 
 		# If it's a clean exit and -c/--clean has been passed...
 		msg "$(gettext "Cleaning up...")"
-		rm -rf "$pkgdirbase" "$srcdir"
+		sudo rm -rf "$pkgdirbase" "$srcdir"
 		if [[ -n $pkgbase ]]; then
 			local fullver=$(get_full_version)
 			# Can't do this unless the BUILDSCRIPT has been sourced.
 			if (( PKGVERFUNC )); then
-				rm -f "${pkgbase}-${fullver}-${CARCH}-pkgver.log"*
+				sudo rm -f "${pkgbase}-${fullver}-${CARCH}-pkgver.log"*
 			fi
 			if (( PREPAREFUNC )); then
-				rm -f "${pkgbase}-${fullver}-${CARCH}-prepare.log"*
+				sudo rm -f "${pkgbase}-${fullver}-${CARCH}-prepare.log"*
 			fi
 			if (( BUILDFUNC )); then
-				rm -f "${pkgbase}-${fullver}-${CARCH}-build.log"*
+				sudo rm -f "${pkgbase}-${fullver}-${CARCH}-build.log"*
 			fi
 			if (( CHECKFUNC )); then
-				rm -f "${pkgbase}-${fullver}-${CARCH}-check.log"*
+				sudo rm -f "${pkgbase}-${fullver}-${CARCH}-check.log"*
 			fi
 			if (( PKGFUNC )); then
-				rm -f "${pkgbase}-${fullver}-${CARCH}-package.log"*
+				sudo rm -f "${pkgbase}-${fullver}-${CARCH}-package.log"*
 			elif (( SPLITPKG )); then
 				for pkg in ${pkgname[@]}; do
-					rm -f "${pkgbase}-${fullver}-${CARCH}-package_${pkg}.log"*
+					sudo rm -f "${pkgbase}-${fullver}-${CARCH}-package_${pkg}.log"*
 				done
 			fi
 
@@ -179,7 +179,7 @@ clean_up() {
 			for pkg in ${pkgname[@]}; do
 				for file in ${pkg}-*-*-*{${PKGEXT},${SRCEXT}}; do
 					if [[ -h $file && ! -e $file ]]; then
-						rm -f "$file"
+						sudo rm -f "$file"
 					fi
 				done
 			done
