@@ -48,3 +48,7 @@ If the PKGBUILD file of an [AUR](https://aur.archlinux.org) package is stored in
     $ sudo makearmpkg -r ../aarch64 -- --noconfirm
 
 The option `--noconfirm` is passed to `makepkg` (the fork, to be correct) to suppress user input. The warnings `Unknown host QEMU_IFLA type: 54` can be ignored.
+
+## Limitations
+
+Since `armutils` is based on QEMU, problems occur if system calls that are required for building a package are not implemented in QEMU (that's also the reason for `fakeroot` not working - see above). I found that this happens more often when building packages for 32-bit architectures than for ARM64.
