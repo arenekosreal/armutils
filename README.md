@@ -3,21 +3,21 @@
 
 With [chroot](https://wiki.archlinux.org/index.php/Chroot) environments and [QEMU](https://wiki.archlinux.org/index.php/QEMU) it's possible to build Arch Linux packages for [ARM architectures](https://en.wikipedia.org/wiki/ARM_architecture) in a rather simple and convenient way. **armutils** provides the corresponding tools:
 
-* `mkarmroot` creates an Arch Linux chroot environment for an ARM architecture from an image file. Such image files can be downloaded from [Arch Linux ARM](https://archlinuxarm.org)
+* `mkarmchroot` creates an Arch Linux chroot environment for an ARM architecture from an image file. Such image files can be downloaded from [Arch Linux ARM](https://archlinuxarm.org)
 * `arm-nspawn` spawns a command in an ARM chroot environment, wrapping `systemd-nspawn`
 * `makearmpkg` builds a package in an ARM chroot environment
 
 These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`. [qemu-user-static](https://aur.archlinux.org/packages/qemu-user-static/) and [binfmt-qemu-static](https://aur.archlinux.org/packages/binfmt-qemu-static/) are used to "translate" between the ARM chroot and the x86_64 host.
 
-## mkarchroot
+## mkarmchroot
 
-`mkarchroot` is an implementation of the approach described on [nerdstuff.org](https://nerdstuff.org/posts/2020/2020-003_simplest_way_to_create_an_arm_chroot/). The tool must be called with:
+`mkarmchroot` is an implementation of the approach described on [nerdstuff.org](https://nerdstuff.org/posts/2020/2020-003_simplest_way_to_create_an_arm_chroot/). The tool must be called with:
 
 * either an URL of an ARM image archive or the path of an image archive on the local file system. Such an image can be obtained from [Arch Linux ARM](https://archlinuxarm.org) for different ARM architectures.
 * the desired path of the root directory of the new chroot environment
 * a list of packages / package groups that shall be installed.
 
-`mkarchroot` creates the root folder for the chroot environment, extracts the image files into it, updates the environment and installs the packages.
+`mkarmchroot` creates the root folder for the chroot environment, extracts the image files into it, updates the environment and installs the packages.
 
 ## arm-nspawn
 
