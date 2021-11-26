@@ -1,13 +1,9 @@
-# SPDX-FileCopyrightText: 2020 Michael Picht <mipi@fsfe.org>
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 PKG=armutils
 
 # use bash
 SHELL=/bin/bash
 
-.PHONY: shellcheck install
+.PHONY: install
 
 all:
 	echo "nothing to make"
