@@ -420,7 +420,7 @@ _chrootbuild() {
 	# https://bugzilla.sudo.ws/show_bug.cgi?id=765
 	user_name=$1
 	shift
-	sudo --preserve-env=SOURCE_DATE_EPOCH -iu "$user_name" bash -c 'cd /startdir; makepkg_sudo "$@"' -bash "$@"
+	sudo --preserve-env=SOURCE_DATE_EPOCH -iu "$user_name" bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
 	ret=$?
 	case $ret in
 		0|14)

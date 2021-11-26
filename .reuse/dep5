@@ -4,7 +4,6 @@ Upstream-Contact: Michael Picht <mipi@fsfe.org>
 Source: gitlab.com/mipimipi/armutils
 
 Files: bin/*
-       etc/*
        Makefile
        PKGBUILD
        .gitlab-ci.yml
