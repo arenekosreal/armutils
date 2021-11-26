@@ -26,7 +26,7 @@ provides=(armutils)
 
 pkgver() {
     cd "$srcdir/$_pkgname"
-    git describe --long --tags | sed 's/\([^-]*-g\)/r\1/; s/-/./g'
+    git describe --tags --long 2>/dev/null | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//' ||
 }
 
 package() {
