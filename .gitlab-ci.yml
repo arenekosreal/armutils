@@ -3,44 +3,35 @@ image: archlinux:latest
 stages: 
     - deploy
 
-.before_script_common: &before_script_common
-    # update arch linux and install additional packages  
-    - pacman -Syu --noconfirm base base-devel git pacman openssh sudo
-    # set up ssh for access to web space
-    - eval $(ssh-agent -s)
-    - echo "$AUR_SSH_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$AUR_HOST_INFO" > ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-    # set git config
-    - git config --global user.email "$GITLAB_USER_EMAIL"
-    - git config --global user.name "$GITLAB_USER_NAME"
-
-.script_common: &script_common
-    - git clone ssh://${AUR_USER}@${AUR_URL}/${pkgname}.git build
-    - chgrp nobody build
-    - chmod g+ws build
-    - setfacl -m u::rwx,g::rwx build
-    - setfacl -d --set u::rwx,g::rwx,o::- build          
-    - cp PKGBUILD build
-    - cd build  
-    - sudo -u nobody makepkg --printsrcinfo > .SRCINFO
-    - git add PKGBUILD .SRCINFO
-    - git commit -m "${CI_COMMIT_MESSAGE}"
-    - git push  
-
 deploy:
     stage: deploy
-    only:
-        changes:
-            - PKGBUILD
-        refs:
-            - master
+    rules:
+        - if: $CI_COMMIT_TAG
 
     before_script:
-        - *before_script_common
+        # update arch linux and install additional packages  
+        - pacman -Syu --noconfirm base base-devel git pacman openssh sudo
+        # set up ssh for access to web space
+        - eval $(ssh-agent -s)
+        - echo "${AUR_SSH_KEY}" | tr -d '\r' | ssh-add -
+        - mkdir -p ~/.ssh
+        - chmod 700 ~/.ssh
+        - ssh-keyscan ${AUR_URL} > ~/.ssh/known_hosts
+        - chmod 644 ~/.ssh/known_hosts
+        # set git config
+        - git config --global user.email "${GITLAB_USER_EMAIL}"
+        - git config --global user.name "${GITLAB_USER_NAME}"
 
     script:
         - pkgname=armutils-git
-        - *script_common  
+        - git clone ssh://${AUR_USER}@${AUR_URL}/${pkgname}.git build
+        - chgrp nobody build
+        - chmod g+ws build
+        - setfacl -m u::rwx,g::rwx build
+        - setfacl -d --set u::rwx,g::rwx,o::- build          
+        - cp PKGBUILD build
+        - cd build  
+        - sudo -u nobody makepkg --printsrcinfo > .SRCINFO
+        - git add PKGBUILD .SRCINFO
+        - git commit -m "${CI_COMMIT_MESSAGE}"
+        - git push  
