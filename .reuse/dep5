@@ -10,7 +10,6 @@ Files: bin/*
 Copyright: 2020-2021 Michael Picht <mipi@fsfe.org>
 License: GPL-3.0-or-later
 
-Files: CHANGELOG.md
-       README.md
+Files: README.md
 Copyright: 2020-2021 Michael Picht <mipi@fsfe.org>
 License: CC-BY-NC-SA-4.0
