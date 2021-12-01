@@ -8,7 +8,7 @@ Files: bin/*
        PKGBUILD
        .gitlab-ci.yml
 Copyright: 2020-2021 Michael Picht <mipi@fsfe.org>
-License: GPL-3.0-or-later
+License: GPL-2.0-only
 
 Files: README.md
 Copyright: 2020-2021 Michael Picht <mipi@fsfe.org>

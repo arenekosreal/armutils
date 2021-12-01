@@ -12,7 +12,6 @@ install:
 	for CMD in `ls bin`; do \
 		install -Dm755 bin/$$CMD $(DESTDIR)/usr/bin/$$CMD; \
 	done
-	install -Dm755 etc/makepkg_sudo $(DESTDIR)/etc/$(PKG)/makepkg_sudo
 
 # (1) adjust version in PKGBUILD, commit and push changes
 # (2) create an annotated tag with name RELEASE

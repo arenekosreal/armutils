@@ -1,13 +1,8 @@
-#!/usr/bin/bash
-
-# SPDX-FileCopyrightText: 2020 Michael Picht <mipi@fsfe.org>
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
+#!/bin/bash
 # arm-nspawn is a fork of arch-nspawn that executes a command in an ARM chroot
 # environment. The chroot environment must be created with mkarmroot
 
-# Preamble of the origi al file:
+# Preamble of the original file:
 #
 # License: GNU GPLv2
 #

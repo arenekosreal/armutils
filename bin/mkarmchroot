@@ -1,11 +1,19 @@
 #!/usr/bin/bash
-
-# SPDX-FileCopyrightText: 2020 Michael Picht <mipi@fsfe.org>
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
 # mkarmroot creates an ARM chroot environment from an Arch Linux ARM image
 # file. Such files can be obtained from archlinuxarm.org.
+
+# Preamble of the original file:
+#
+# License: GNU GPLv2
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
 # shellcheck disable=SC2154
 trap 's=$?; echo "$0: Error on line ${LINENO}: ${BASH_COMMAND}" $s' ERR
@@ -188,7 +196,7 @@ Usage:
   ${0##*/} [options] chroot-dir packages ...
 
 Options:
-  -u <url>    Web url of aa Arch Linux ARM image file
+  -u <url>    Web url of an Arch Linux ARM image file
   -f <file>   Location of an Arch Linux ARM image file
   -C <file>   Location of a pacman config file
   -M <file>   Location of a makepkg config file
@@ -248,9 +256,6 @@ create_chroot_dir
 
 # populate ARM files
 populate_arm_files
-
-# populate forked makepkg
-cp /etc/armutils/makepkg_sudo "${chroot_dir}/usr/bin"
 
 # set machine id
 systemd-machine-id-setup --root="$chroot_dir"
