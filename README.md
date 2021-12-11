@@ -33,7 +33,7 @@ These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch
 
 The command
 
-    $ mkarmroot -u http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz <YOUR-PATH>/aarch64/root base-devel
+    $ mkarmchroot -u http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz <YOUR-PATH>/aarch64/root base-devel
 
 creates a chroot environment for ARMv8 / AArch64 under the folder `<YOUR-PATH>/aarch64/root` and installs the package group `base-devel`.
 
