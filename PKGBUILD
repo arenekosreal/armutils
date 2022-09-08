@@ -11,7 +11,6 @@ source=("git+https://$_pkgorg/$_pkgname.git")
 validpgpkeys=(11ECD6695134183B3E7AF1C2223AAA374A1D59CE) # Michael Picht <mipi@fsfe.org>
 md5sums=(SKIP)
 depends=(
-    binfmt-qemu-static
     libarchive
     qemu-user-static
 )
