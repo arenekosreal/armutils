@@ -7,7 +7,7 @@ With [chroot](https://wiki.archlinux.org/index.php/Chroot) environments and [QEM
 * `arm-nspawn` spawns a command in an ARM chroot environment, wrapping `systemd-nspawn`
 * `makearmpkg` builds a package in an ARM chroot environment
 
-These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`. [qemu-user-static](https://aur.archlinux.org/packages/qemu-user-static/) and [binfmt-qemu-static](https://aur.archlinux.org/packages/binfmt-qemu-static/) are used to "translate" between the ARM chroot and the x86_64 host.
+These tools mimic the behaviour of their x86_64 counterparts `mkarchroot`, `arch-nspawn` and `makechrootpkg`. [qemu-user-static](https://archlinux.org/packages/?name=qemu-user-static) and [qemu-user-static-binfmt](https://archlinux.org/packages/?name=qemu-user-static-binfmt) are used to "translate" between the ARM chroot and the x86_64 host.
 
 ## mkarmchroot
 
