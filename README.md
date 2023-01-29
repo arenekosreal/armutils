@@ -1,3 +1,5 @@
+**armutils will no longer be maintained**
+
 [![REUSE status](https://api.reuse.software/badge/gitlab.com/mipimipi/armutils)](https://api.reuse.software/info/gitlab.com/mipimipi/armutils)
 # armutils
 
